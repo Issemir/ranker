@@ -12,6 +12,19 @@ class Ranker {
         this.totalMatchesInRound = 0;
         
         this.initializeEventListeners();
+        this.checkAuth();
+    }
+
+    async checkAuth() {
+        try {
+            const response = await fetch("/api/user");
+            if (response.status === 401) {
+                window.location.href = "/login";
+                return;
+            }
+        } catch (error) {
+            console.error("Auth check error:", error);
+        }
     }
 
     initializeEventListeners() {
@@ -23,8 +36,15 @@ class Ranker {
         document.getElementById("option2-btn").addEventListener("click", () => this.vote(2));
 
         // Results buttons
+        document.getElementById("save-btn").addEventListener("click", () => this.saveRanking());
         document.getElementById("export-btn").addEventListener("click", () => this.exportResults());
         document.getElementById("restart-btn").addEventListener("click", () => this.restartRanking());
+
+        // Logout button
+        const logoutBtn = document.getElementById("logout-btn");
+        if (logoutBtn) {
+            logoutBtn.addEventListener("click", () => this.logout());
+        }
 
         // Keyboard shortcuts
         document.addEventListener("keydown", (e) => {
@@ -34,13 +54,36 @@ class Ranker {
         });
     }
 
+    async logout() {
+        try {
+            const response = await fetch("/api/logout", { method: "POST" });
+            if (response.ok) {
+                window.location.href = "/login";
+            }
+        } catch (error) {
+            console.error("Logout error:", error);
+            alert("Error logging out");
+        }
+    }
+
     async startRanking() {
         try {
             const response = await fetch("/api/start", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" }
             });
+            
+            if (response.status === 401) {
+                window.location.href = "/login";
+                return;
+            }
+
             const data = await response.json();
+
+            if (!response.ok) {
+                alert(data.error || "Error starting ranking. Please upload a file first.");
+                return;
+            }
 
             this.totalRounds = data.total_rounds;
             this.totalMatches = 0;
@@ -51,7 +94,7 @@ class Ranker {
             await this.loadNextMatch();
         } catch (error) {
             console.error("Error starting ranking:", error);
-            alert("Error starting ranking");
+            alert("Error starting ranking. Please upload a file first.");
         }
     }
 
@@ -93,6 +136,12 @@ class Ranker {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ choice })
             });
+
+            if (response.status === 401) {
+                window.location.href = "/login";
+                return;
+            }
+
             const data = await response.json();
 
             // Show selected button
@@ -148,6 +197,34 @@ class Ranker {
         });
     }
 
+    async saveRanking() {
+        const sessionName = document.getElementById("session-name").value || "Unnamed Ranking";
+
+        try {
+            const response = await fetch("/api/save-ranking", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ session_name: sessionName })
+            });
+
+            if (response.status === 401) {
+                window.location.href = "/login";
+                return;
+            }
+
+            const data = await response.json();
+
+            if (data.status === "saved") {
+                alert("✓ Ranking saved to history!");
+                document.getElementById("save-btn").textContent = "Saved!";
+                document.getElementById("save-btn").disabled = true;
+            }
+        } catch (error) {
+            console.error("Error saving ranking:", error);
+            alert("Error saving ranking");
+        }
+    }
+
     async exportResults() {
         try {
             const response = await fetch("/api/export", {
@@ -155,6 +232,12 @@ class Ranker {
                 headers: { "Content-Type": "application/json" },
                 body: JSON.stringify({ path: "rankings.txt" })
             });
+
+            if (response.status === 401) {
+                window.location.href = "/login";
+                return;
+            }
+
             const data = await response.json();
 
             if (data.status === "exported") {

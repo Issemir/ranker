@@ -36,6 +36,7 @@ class SwissRanker:
         self.competitors = [Competitor(name=item) for item in items]
         self.matchups: List[Tuple[Competitor, Competitor]] = []
         self.history: List[Tuple[str, str, str]] = []  # (winner, loser, round)
+        self.pairings = {}
 
     def get_pairings(self) -> List[Tuple[Competitor, Competitor]]:
         """Generate pairings for next round using Swiss-system algorithm.
@@ -65,6 +66,7 @@ class SwissRanker:
                 (competitor.name, "BYE", f"Round {len(self.get_rounds()) + 1}")
             )
 
+        self.pairings = pairings
         return pairings
 
     def record_match(self, winner: Competitor, loser: Competitor, round_num: int) -> None:

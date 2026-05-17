@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - Ranker</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div>
+                    <h1>🏆 Ranker</h1>
+                    <p>Welcome, <span id="user-email">{{ user.email }}</span></p>
+                </div>
+                <button id="logout-btn" class="btn btn-secondary">Logout</button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="dashboard-container">
+                <div class="dashboard-header">
+                    <h2>Your Ranking Sessions</h2>
+                </div>
+
+                <!-- Upload File Section -->
+                <div class="upload-section">
+                    <div class="upload-card">
+                        <h3>📤 Start New Ranking</h3>
+                        <p>Upload a text file with items to rank (one per line)</p>
+                        <form id="upload-form" enctype="multipart/form-data" class="upload-form">
+                            <div class="form-group">
+                                <label for="file-input">Select File (.txt)</label>
+                                <input type="file" id="file-input" name="file" accept=".txt" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="rounds-input">Rounds (1-20)</label>
+                                <input type="number" id="rounds-input" name="rounds" min="1" max="20" value="5">
+                            </div>
+                            <button type="submit" class="btn btn-primary">Upload & Start</button>
+                        </form>
+                        <div id="upload-error" class="error-message"></div>
+                        <div id="upload-status" class="upload-status"></div>
+                    </div>
+                </div>
+
+                <!-- History Section -->
+                <div class="history-section">
+                    <h2>Previous Rankings</h2>
+                    <div id="rankings-container" class="rankings-grid">
+                        <!-- Rankings will be loaded here -->
+                    </div>
+
+                    <div id="empty-state" class="empty-state">
+                        <p>No rankings yet. Upload a file above to get started!</p>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Load rankings history
+        async function loadRankings() {
+            try {
+                const response = await fetch("/api/rankings-history");
+                
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+
+                const data = await response.json();
+                const container = document.getElementById("rankings-container");
+                const emptyState = document.getElementById("empty-state");
+
+                if (data.rankings && data.rankings.length > 0) {
+                    container.innerHTML = data.rankings.map(r => `
+                        <div class="ranking-card">
+                            <div class="ranking-card-header">
+                                <h3>${r.session_name}</h3>
+                                <div class="ranking-card-meta">
+                                    <span>${r.items_count} items</span>
+                                    <span>${r.rounds} rounds</span>
+                                </div>
+                            </div>
+                            <div class="ranking-card-body">
+                                <p><strong>Top Pick:</strong> ${r.top_item}</p>
+                                <p class="ranking-date">${new Date(r.created_at).toLocaleDateString()}</p>
+                            </div>
+                            <button class="btn btn-primary view-btn" onclick="viewRanking(${r.id})">View Details</button>
+                        </div>
+                    `).join("");
+                    emptyState.style.display = "none";
+                } else {
+                    container.innerHTML = "";
+                    emptyState.style.display = "block";
+                }
+            } catch (error) {
+                console.error("Error loading rankings:", error);
+            }
+        }
+
+        // View ranking details
+        function viewRanking(rankingId) {
+            window.location.href = `/history/${rankingId}`;
+        }
+
+        // Handle file upload
+        document.getElementById("upload-form").addEventListener("submit", async (e) => {
+            e.preventDefault();
+            
+            const fileInput = document.getElementById("file-input");
+            const roundsInput = document.getElementById("rounds-input");
+            const errorDiv = document.getElementById("upload-error");
+            const statusDiv = document.getElementById("upload-status");
+
+            if (!fileInput.files || fileInput.files.length === 0) {
+                errorDiv.textContent = "Please select a file";
+                return;
+            }
+
+            const formData = new FormData();
+            formData.append("file", fileInput.files[0]);
+            formData.append("rounds", roundsInput.value);
+
+            statusDiv.textContent = "Uploading...";
+            errorDiv.textContent = "";
+
+            try {
+                const response = await fetch("/api/upload-file", {
+                    method: "POST",
+                    body: formData
+                });
+
+                const data = await response.json();
+
+                if (response.ok) {
+                    statusDiv.textContent = `✓ ${data.message}. Redirecting...`;
+                    setTimeout(() => {
+                        window.location.href = data.redirect;
+                    }, 1500);
+                } else {
+                    errorDiv.textContent = data.error || "Upload failed";
+                    statusDiv.textContent = "";
+                }
+            } catch (error) {
+                errorDiv.textContent = "Error: " + error.message;
+                statusDiv.textContent = "";
+            }
+        });
+
+        // Logout
+        document.getElementById("logout-btn").addEventListener("click", async () => {
+            try {
+                const response = await fetch("/api/logout", { method: "POST" });
+                if (response.ok) {
+                    window.location.href = "/login";
+                }
+            } catch (error) {
+                console.error("Logout error:", error);
+            }
+        });
+
+        // Load on page load
+        loadRankings();
+    </script>
+</body>
+</html>

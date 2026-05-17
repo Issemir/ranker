@@ -9,17 +9,28 @@
 <body>
     <div class="container">
         <header class="header">
-            <h1>🏆 Ranker</h1>
-            <p>Rank items using Swiss-bracket voting</p>
+            <div class="header-content">
+                <div>
+                    <h1>🏆 Ranker</h1>
+                    <p>Rank items using Swiss-bracket voting</p>
+                </div>
+                <div class="header-nav">
+                    <a href="/dashboard" class="btn btn-secondary">Dashboard</a>
+                    <button id="logout-btn" class="btn btn-secondary">Logout</button>
+                </div>
+            </div>
         </header>
 
         <main class="main-content">
             <!-- Start Screen -->
             <section id="start-screen" class="screen active">
                 <div class="start-content">
-                    <h2>Welcome to Ranker</h2>
-                    <p>Click the button below to start ranking items.</p>
+                    <h2>Ready to Rank!</h2>
+                    <p>You have a file ready to rank. Click the button below to begin voting.</p>
                     <button id="start-btn" class="btn btn-primary btn-lg">Start Ranking</button>
+                    <p style="margin-top: 1.5rem; color: var(--text-secondary); font-size: 0.95rem;">
+                        <a href="/dashboard" style="color: var(--primary-color);">← Back to Dashboard</a>
+                    </p>
                 </div>
             </section>
 
@@ -61,6 +72,10 @@
                     <h2>Final Rankings</h2>
                     <div id="rankings-list" class="rankings-list">
                         <!-- Rankings will be inserted here -->
+                    </div>
+                    <div class="results-save">
+                        <input type="text" id="session-name" placeholder="Name this ranking (optional)" class="session-input">
+                        <button id="save-btn" class="btn btn-secondary">Save to History</button>
                     </div>
                     <div class="results-actions">
                         <button id="export-btn" class="btn btn-secondary">Export Results</button>

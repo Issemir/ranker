@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranking Details - Ranker</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div>
+                    <h1>🏆 Ranker</h1>
+                    <p>Ranking Details</p>
+                </div>
+                <button id="logout-btn" class="btn btn-secondary">Logout</button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="detail-container">
+                <div class="detail-header">
+                    <a href="/dashboard" class="btn btn-secondary">← Back to Dashboard</a>
+                    <h2>{{ ranking.session_name or "Ranking" }}</h2>
+                    <p class="detail-meta">{{ ranking.created_at }}</p>
+                </div>
+
+                <div class="detail-stats">
+                    <div class="stat-item">
+                        <span class="stat-label">Items Ranked</span>
+                        <span class="stat-value">{{ ranking.items|length }}</span>
+                    </div>
+                    <div class="stat-item">
+                        <span class="stat-label">Rounds</span>
+                        <span class="stat-value">{{ ranking.rounds }}</span>
+                    </div>
+                </div>
+
+                <h3>Final Rankings</h3>
+                <div class="rankings-list">
+                    {% for item in ranking.results %}
+                    <div class="ranking-item">
+                        <div class="rank-badge">
+                            {% if loop.index == 1 %}🥇{% elif loop.index == 2 %}🥈{% elif loop.index == 3 %}🥉{% else %}{{ loop.index }}{% endif %}
+                        </div>
+                        <div class="rank-info">
+                            <div class="rank-name">{{ item[0] }}</div>
+                        </div>
+                        <div class="rank-score">
+                            <div class="rank-score-percent">{{ "%.1f"|format(item[1] * 100) }}%</div>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        // Logout
+        document.getElementById("logout-btn").addEventListener("click", async () => {
+            try {
+                const response = await fetch("/api/logout", { method: "POST" });
+                if (response.ok) {
+                    window.location.href = "/login";
+                }
+            } catch (error) {
+                console.error("Logout error:", error);
+            }
+        });
+    </script>
+</body>
+</html>

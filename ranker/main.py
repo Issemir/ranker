@@ -4,8 +4,8 @@ import argparse
 import sys
 import webbrowser
 from pathlib import Path
-from ranker.file_io import read_items_from_file
 from ranker.web_app import create_app
+from ranker.database import Database
 
 
 def main():
@@ -15,16 +15,12 @@ def main():
         formatter_class=argparse.RawDescriptionHelpFormatter,
         epilog="""
 Examples:
-  python -m ranker.main items.txt
-  python -m ranker.main items.txt --rounds 10
-  python -m ranker.main items.txt -r 7 --port 5001
+  python -m ranker.main
+  python -m ranker.main --rounds 10
+  python -m ranker.main -r 7 --port 5001
         """
     )
     
-    parser.add_argument(
-        "input_file",
-        help="Path to input file (one item per line)"
-    )
     parser.add_argument(
         "-r", "--rounds",
         type=int,
@@ -47,29 +43,27 @@ Examples:
         action="store_true",
         help="Don't open browser automatically"
     )
+    parser.add_argument(
+        "--db",
+        default="data/ranker.db",
+        help="Path to database file (default: data/ranker.db)"
+    )
     
     args = parser.parse_args()
     
-    # Read items from file
-    try:
-        items = read_items_from_file(args.input_file)
-        print(f"✓ Loaded {len(items)} items from {args.input_file}")
-    except FileNotFoundError as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
-    except ValueError as e:
-        print(f"Error: {e}", file=sys.stderr)
-        sys.exit(1)
+    # Initialize database
+    db = Database(args.db)
+    print(f"✓ Database initialized: {args.db}")
     
-    # Create Flask app
-    app = create_app(items, rounds=args.rounds)
+    # Create Flask app (no items needed - users will upload)
+    app = create_app(items=[], rounds=args.rounds, db=db)
     
     # Print info
     url = f"http://{args.host}:{args.port}"
     print(f"\n🚀 Ranker server starting...")
     print(f"📱 Open your browser: {url}")
-    print(f"⚙️  Rounds: {args.rounds}")
-    print(f"📊 Items: {len(items)}")
+    print(f"⚙️  Default rounds: {args.rounds}")
+    print(f"💾 Database: {args.db}")
     print(f"\n(Press Ctrl+C to stop)")
     
     # Open browser if not disabled
