@@ -1,0 +1,49 @@
+[project]
+name = "ranker"
+dynamic = ["version"]
+license = {text = "Apache 2.0"}
+description = "Python list ranker using Swiss brackets"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "flask>=3.0.0",
+]
+authors = [
+    { name = "Kallan Green" },
+]
+maintainers = [
+    { name = "Kallan Green", email = "kallan99@live.co.uk" },
+]
+keywords = [
+    "ranker",
+    "Swiss",
+]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "Intended Audience :: Anyone",
+    "Natural Language :: English",
+    "Operating System :: POSIX :: Linux",
+    "Programming Language :: Python",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+]
+
+[project.urls]
+Homepage = "https://github.com/Issemir/ranker"
+Repository = "https://github.com/Issemir/ranker"
+Issues = "https://github.com/Issemir/ranker/issues"
+
+[tool.ruff]
+line-length = 80
+extend-exclude = [
+    ".eggs",
+    "build",
+    "tests",
+    "examples",
+    "scripts",
+]

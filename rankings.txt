@@ -1,0 +1,11 @@
+# Items: 8
+# Rounds: 5
+
+1. Asda (80.0%)
+2. Waitrose (80.0%)
+3. Marks & Spencer (60.0%)
+4. Tesco (40.0%)
+5. Lidl (40.0%)
+6. Morrisons (40.0%)
+7. Sainsburys (40.0%)
+8. Aldi (20.0%)

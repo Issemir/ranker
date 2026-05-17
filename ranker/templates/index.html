@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ranker - Swiss Bracket Voting</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <h1>🏆 Ranker</h1>
+            <p>Rank items using Swiss-bracket voting</p>
+        </header>
+
+        <main class="main-content">
+            <!-- Start Screen -->
+            <section id="start-screen" class="screen active">
+                <div class="start-content">
+                    <h2>Welcome to Ranker</h2>
+                    <p>Click the button below to start ranking items.</p>
+                    <button id="start-btn" class="btn btn-primary btn-lg">Start Ranking</button>
+                </div>
+            </section>
+
+            <!-- Voting Screen -->
+            <section id="voting-screen" class="screen">
+                <div class="voting-container">
+                    <div class="progress-bar">
+                        <div class="progress-fill"></div>
+                    </div>
+                    
+                    <div class="round-info">
+                        <span id="round-display">Round 1</span>
+                        <span id="match-display">Match 1/2</span>
+                    </div>
+
+                    <div class="voting-area">
+                        <button id="option1-btn" class="option-btn option-left">
+                            <span class="option-number">1</span>
+                            <span id="option1-text" class="option-text">Option 1</span>
+                        </button>
+
+                        <div class="vs-divider">VS</div>
+
+                        <button id="option2-btn" class="option-btn option-right">
+                            <span class="option-number">2</span>
+                            <span id="option2-text" class="option-text">Option 2</span>
+                        </button>
+                    </div>
+
+                    <div class="voting-hints">
+                        <p>Press <kbd>1</kbd> or <kbd>2</kbd> to vote, or click above</p>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Results Screen -->
+            <section id="results-screen" class="screen">
+                <div class="results-container">
+                    <h2>Final Rankings</h2>
+                    <div id="rankings-list" class="rankings-list">
+                        <!-- Rankings will be inserted here -->
+                    </div>
+                    <div class="results-actions">
+                        <button id="export-btn" class="btn btn-secondary">Export Results</button>
+                        <button id="restart-btn" class="btn btn-primary">Start Again</button>
+                    </div>
+                </div>
+            </section>
+        </main>
+    </div>
+
+    <script src="/static/app.js"></script>
+</body>
+</html>
