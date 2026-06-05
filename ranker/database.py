@@ -139,6 +139,15 @@ class Database:
         conn.close()
         return dict(user) if user else None
 
+    def get_all_users(self) -> List[Dict]:
+        """Get all users with their info."""
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute("SELECT id, email, created_at FROM users ORDER BY email")
+        users = [dict(row) for row in cursor.fetchall()]
+        conn.close()
+        return users
+
     def save_ranking(
         self,
         user_id: int,
@@ -183,19 +192,50 @@ class Database:
 
     def get_user_rankings(self, user_id: int) -> List[Dict]:
         """Get all rankings for a user.
-        
+
         Args:
             user_id: User ID
-            
+
         Returns:
             List of ranking history dictionaries
         """
         import json
-        
+
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute(
-            """SELECT id, session_name, items, rounds, results, created_at 
+            """SELECT id, session_name, items, rounds, results, created_at
+               FROM rankings WHERE user_id = ? ORDER BY created_at DESC""",
+            (user_id,)
+        )
+        rankings = []
+        for row in cursor.fetchall():
+            rankings.append({
+                "id": row["id"],
+                "session_name": row["session_name"],
+                "items": json.loads(row["items"]),
+                "rounds": row["rounds"],
+                "results": json.loads(row["results"]),
+                "created_at": row["created_at"]
+            })
+        conn.close()
+        return rankings
+
+    def get_user_rankings_public(self, user_id: int) -> List[Dict]:
+        """Get all public rankings for a user.
+
+        Args:
+            user_id: User ID
+
+        Returns:
+            List of ranking dictionaries
+        """
+        import json
+
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """SELECT id, session_name, items, rounds, results, created_at, user_id
                FROM rankings WHERE user_id = ? ORDER BY created_at DESC""",
             (user_id,)
         )
@@ -215,11 +255,11 @@ class Database:
     def get_ranking_by_id(self, ranking_id: int, user_id: int) -> Optional[Dict]:
         """Get a specific ranking by ID (verify user ownership)."""
         import json
-        
+
         conn = self.get_connection()
         cursor = conn.cursor()
         cursor.execute(
-            """SELECT id, session_name, items, rounds, results, created_at 
+            """SELECT id, session_name, items, rounds, results, created_at
                FROM rankings WHERE id = ? AND user_id = ?""",
             (ranking_id, user_id)
         )
@@ -236,4 +276,34 @@ class Database:
             "rounds": row["rounds"],
             "results": json.loads(row["results"]),
             "created_at": row["created_at"]
+        }
+
+    def get_ranking_by_id_public(self, ranking_id: int) -> Optional[Dict]:
+        """Get a specific ranking by ID (public, no ownership check). Includes owner info."""
+        import json
+
+        conn = self.get_connection()
+        cursor = conn.cursor()
+        cursor.execute(
+            """SELECT r.id, r.session_name, r.items, r.rounds, r.results, r.created_at, r.user_id, u.email
+               FROM rankings r
+               JOIN users u ON r.user_id = u.id
+               WHERE r.id = ?""",
+            (ranking_id,)
+        )
+        row = cursor.fetchone()
+        conn.close()
+
+        if not row:
+            return None
+
+        return {
+            "id": row["id"],
+            "session_name": row["session_name"],
+            "items": json.loads(row["items"]),
+            "rounds": row["rounds"],
+            "results": json.loads(row["results"]),
+            "created_at": row["created_at"],
+            "owner_id": row["user_id"],
+            "owner_email": row["email"]
         }

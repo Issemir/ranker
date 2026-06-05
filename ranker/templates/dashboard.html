@@ -11,7 +11,7 @@
         <header class="header">
             <div class="header-content">
                 <div>
-                    <h1>🏆 Ranker</h1>
+                    <h1><a href="/dashboard">🏆 Ranker</a></h1>
                     <p>Welcome, <span id="user-email">{{ user.email }}</span></p>
                 </div>
                 <button id="logout-btn" class="btn btn-secondary">Logout</button>
@@ -54,6 +54,15 @@
 
                     <div id="empty-state" class="empty-state">
                         <p>No rankings yet. Upload a file above to get started!</p>
+                    </div>
+                </div>
+
+                <!-- Browse Users Section -->
+                <div class="browse-section">
+                    <h2>Explore Other Rankings</h2>
+                    <div class="browse-card">
+                        <p>Discover rankings created by other users on the platform</p>
+                        <a href="/users" class="btn btn-primary">Browse All Users</a>
                     </div>
                 </div>
             </div>

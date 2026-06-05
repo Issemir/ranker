@@ -11,7 +11,7 @@
         <header class="header">
             <div class="header-content">
                 <div>
-                    <h1>🏆 Ranker</h1>
+                    <h1><a href="/dashboard">🏆 Ranker</a></h1>
                     <p>Ranking Details</p>
                 </div>
                 <button id="logout-btn" class="btn btn-secondary">Logout</button>
@@ -24,12 +24,13 @@
                     <a href="/dashboard" class="btn btn-secondary">← Back to Dashboard</a>
                     <h2>{{ ranking.session_name or "Ranking" }}</h2>
                     <p class="detail-meta">{{ ranking.created_at }}</p>
+                    <p class="detail-owner">By: <a href="/users/{{ ranking['owner_id'] }}">{{ ranking['owner_email'] }}</a></p>
                 </div>
 
                 <div class="detail-stats">
                     <div class="stat-item">
                         <span class="stat-label">Items Ranked</span>
-                        <span class="stat-value">{{ ranking.items|length }}</span>
+                        <span class="stat-value">{{ ranking['items']|length }}</span>
                     </div>
                     <div class="stat-item">
                         <span class="stat-label">Rounds</span>

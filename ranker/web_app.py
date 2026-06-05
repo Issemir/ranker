@@ -116,12 +116,29 @@ class RankerWebApp:
         def view_ranking(ranking_id):
             if "user_id" not in session:
                 return redirect(url_for("login_page"))
-            
-            ranking = self.db.get_ranking_by_id(ranking_id, session["user_id"])
+
+            ranking = self.db.get_ranking_by_id_public(ranking_id)
             if not ranking:
                 return render_template("error.html", message="Ranking not found"), 404
-            
+
             return render_template("ranking_detail.html", ranking=ranking)
+
+        @app.route("/users", methods=["GET"])
+        def users_page():
+            if "user_id" not in session:
+                return redirect(url_for("login_page"))
+            return render_template("users.html")
+
+        @app.route("/users/<int:user_id>", methods=["GET"])
+        def user_rankings_page(user_id):
+            if "user_id" not in session:
+                return redirect(url_for("login_page"))
+
+            user = self.db.get_user_by_id(user_id)
+            if not user:
+                return render_template("error.html", message="User not found"), 404
+
+            return render_template("user_rankings.html", user=user)
         
         # API Routes
         @app.route("/api/register", methods=["POST"])
@@ -203,6 +220,53 @@ class RankerWebApp:
                     for r in rankings
                 ]
             })
+
+        @app.route("/api/users", methods=["GET"])
+        @login_required
+        def api_users():
+            """Get list of all users."""
+            users = self.db.get_all_users()
+            return jsonify({
+                "status": "success",
+                "users": [
+                    {
+                        "id": u["id"],
+                        "email": u["email"],
+                        "created_at": u["created_at"]
+                    }
+                    for u in users
+                ]
+            })
+
+        @app.route("/api/users/<int:user_id>/rankings", methods=["GET"])
+        @login_required
+        def api_user_rankings(user_id):
+            """Get rankings for a specific user."""
+            user = self.db.get_user_by_id(user_id)
+            if not user:
+                return jsonify({"error": "User not found"}), 404
+
+            rankings = self.db.get_user_rankings_public(user_id)
+            return jsonify({
+                "status": "success",
+                "user": {
+                    "id": user["id"],
+                    "email": user["email"],
+                    "created_at": user["created_at"]
+                },
+                "rankings": [
+                    {
+                        "id": r["id"],
+                        "session_name": r["session_name"] or "Unnamed",
+                        "items_count": len(r["items"]),
+                        "rounds": r["rounds"],
+                        "created_at": r["created_at"],
+                        "top_item": r["results"][0][0] if r["results"] else "N/A"
+                    }
+                    for r in rankings
+                ]
+            })
+
         
         @app.route("/api/upload-file", methods=["POST"])
         @login_required

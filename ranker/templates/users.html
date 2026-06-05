@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Browse Users - Ranker</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div>
+                    <h1><a href="/dashboard">🏆 Ranker</a></h1>
+                    <p>Browse All Users</p>
+                </div>
+                <button id="logout-btn" class="btn btn-secondary">Logout</button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="dashboard-container">
+                <div class="dashboard-header">
+                    <a href="/dashboard" class="btn btn-secondary">← Back to Dashboard</a>
+                    <h2>All Users</h2>
+                </div>
+
+                <div id="users-container" class="rankings-grid">
+                    <!-- Users will be loaded here -->
+                </div>
+
+                <div id="empty-state" class="empty-state">
+                    <p>No users found.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        async function loadUsers() {
+            try {
+                const response = await fetch("/api/users");
+
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+
+                const data = await response.json();
+                const container = document.getElementById("users-container");
+                const emptyState = document.getElementById("empty-state");
+
+                if (data.users && data.users.length > 0) {
+                    // Fetch ranking counts for each user
+                    const usersWithCounts = await Promise.all(
+                        data.users.map(async (user) => {
+                            const rankResponse = await fetch(`/api/users/${user.id}/rankings`);
+                            const rankData = await rankResponse.json();
+                            return {
+                                ...user,
+                                ranking_count: rankData.rankings ? rankData.rankings.length : 0
+                            };
+                        })
+                    );
+
+                    container.innerHTML = usersWithCounts.map(user => `
+                        <div class="ranking-card">
+                            <div class="ranking-card-header">
+                                <h3>${user.email}</h3>
+                                <div class="ranking-card-meta">
+                                    <span>${user.ranking_count} ranking${user.ranking_count !== 1 ? 's' : ''}</span>
+                                </div>
+                            </div>
+                            <div class="ranking-card-body">
+                                <p class="ranking-date">Member since ${new Date(user.created_at).toLocaleDateString()}</p>
+                            </div>
+                            <button class="btn btn-primary view-btn" onclick="viewUser(${user.id})">View Rankings</button>
+                        </div>
+                    `).join("");
+                    emptyState.style.display = "none";
+                } else {
+                    container.innerHTML = "";
+                    emptyState.style.display = "block";
+                }
+            } catch (error) {
+                console.error("Error loading users:", error);
+            }
+        }
+
+        function viewUser(userId) {
+            window.location.href = `/users/${userId}`;
+        }
+
+        document.getElementById("logout-btn").addEventListener("click", async () => {
+            try {
+                const response = await fetch("/api/logout", { method: "POST" });
+                if (response.ok) {
+                    window.location.href = "/login";
+                }
+            } catch (error) {
+                console.error("Logout error:", error);
+            }
+        });
+
+        loadUsers();
+    </script>
+</body>
+</html>

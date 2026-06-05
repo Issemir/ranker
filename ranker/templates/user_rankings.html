@@ -1,0 +1,109 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Rankings - Ranker</title>
+    <link rel="stylesheet" href="/static/style.css">
+</head>
+<body>
+    <div class="container">
+        <header class="header">
+            <div class="header-content">
+                <div>
+                    <h1><a href="/dashboard">🏆 Ranker</a></h1>
+                    <p id="user-header">Rankings by User</p>
+                </div>
+                <button id="logout-btn" class="btn btn-secondary">Logout</button>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <div class="dashboard-container">
+                <div class="dashboard-header">
+                    <a href="/users" class="btn btn-secondary">← Back to Users</a>
+                    <h2 id="user-name">User Rankings</h2>
+                </div>
+
+                <div id="rankings-container" class="rankings-grid">
+                    <!-- Rankings will be loaded here -->
+                </div>
+
+                <div id="empty-state" class="empty-state">
+                    <p>This user has no rankings yet.</p>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script>
+        const userId = window.location.pathname.split('/')[2];
+
+        async function loadUserRankings() {
+            try {
+                const response = await fetch(`/api/users/${userId}/rankings`);
+
+                if (response.status === 401) {
+                    window.location.href = "/login";
+                    return;
+                }
+
+                if (response.status === 404) {
+                    window.location.href = "/users";
+                    return;
+                }
+
+                const data = await response.json();
+                const container = document.getElementById("rankings-container");
+                const emptyState = document.getElementById("empty-state");
+
+                // Update header with user email
+                document.getElementById("user-header").textContent = `Rankings by ${data.user.email}`;
+                document.getElementById("user-name").textContent = `${data.user.email}'s Rankings`;
+
+                if (data.rankings && data.rankings.length > 0) {
+                    container.innerHTML = data.rankings.map(r => `
+                        <div class="ranking-card">
+                            <div class="ranking-card-header">
+                                <h3>${r.session_name}</h3>
+                                <div class="ranking-card-meta">
+                                    <span>${r.items_count} items</span>
+                                    <span>${r.rounds} rounds</span>
+                                </div>
+                            </div>
+                            <div class="ranking-card-body">
+                                <p><strong>Top Pick:</strong> ${r.top_item}</p>
+                                <p class="ranking-date">${new Date(r.created_at).toLocaleDateString()}</p>
+                            </div>
+                            <button class="btn btn-primary view-btn" onclick="viewRanking(${r.id})">View Details</button>
+                        </div>
+                    `).join("");
+                    emptyState.style.display = "none";
+                } else {
+                    container.innerHTML = "";
+                    emptyState.style.display = "block";
+                }
+            } catch (error) {
+                console.error("Error loading rankings:", error);
+            }
+        }
+
+        function viewRanking(rankingId) {
+            window.location.href = `/history/${rankingId}`;
+        }
+
+        document.getElementById("logout-btn").addEventListener("click", async () => {
+            try {
+                const response = await fetch("/api/logout", { method: "POST" });
+                if (response.ok) {
+                    window.location.href = "/login";
+                }
+            } catch (error) {
+                console.error("Logout error:", error);
+            }
+        });
+
+        loadUserRankings();
+    </script>
+</body>
+</html>
